@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -8,7 +9,7 @@ public class SoundManager : MonoBehaviour
 {
 
     [SerializeField] AudioSource soundSource;
-    private List<KeyValuePair<AudioClip,int>> sounds = new List<KeyValuePair<AudioClip, int>>();
+    private List<AudioLink> audioLinks = new List<AudioLink>();
 
     private void Reset()
     {
@@ -19,9 +20,15 @@ public class SoundManager : MonoBehaviour
     // Register a audio clip for a sound
     public int RegisterSound(AudioClip clip)
     {
-        
-        sounds.Add(clip);
-        return sounds.Count - 1;
+        AudioLink newLink = new AudioLink(audioLinks.Count, clip);
+        if(audioLinks.Contains(newLink))
+        {
+            int index = audioLinks.IndexOf(newLink);
+            return audioLinks[index].linkID;
+        }
+
+        audioLinks.Add(newLink);
+        return audioLinks.Count - 1;
     }
     /// <summary>
     /// Play the sound associated with the index
@@ -30,38 +37,49 @@ public class SoundManager : MonoBehaviour
     public void PlaySound(int index)
     {
         // Ensure that there is a sound in the sounds list
-        if(sounds.Count > index)
+        if(audioLinks.Count > index)
         {
             // Ensure that the sound to play is not null
-            if(sounds[index].Key != null)
+            if(audioLinks[index].audioClip != null)
             {
                 soundSource.Stop();
-                soundSource.clip = sounds[index].Key;
+                soundSource.clip = audioLinks[index].audioClip;
                 soundSource.Play();
             }
         }
     }
 
-    public int DeregisterSound()
+    public void DeregisterSound()
     {
 
     }
 }
 
-struct AudioLink
+internal struct AudioLink
 {
-    int links;
-    AudioClip audioClip;
+    public int linkID;
+    public AudioClip audioClip;
+
+    public AudioLink(int id, AudioClip audioClip)
+    {
+        this.linkID = id;
+        this.audioClip = audioClip ?? throw new ArgumentNullException(nameof(audioClip));
+    }
 
     public override bool Equals(object obj)
     {
         //Check for null and compare run-time types.
-        if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+        if ((obj == null))
+        {
+            return false;
+        }
+        else if ((!this.GetType().Equals(obj.GetType())))
         {
             return false;
         }
         else
         {
+            //they are both Audio Links so see if they are the same
             AudioLink al = (AudioLink)obj;
             return audioClip == al.audioClip;
         }
