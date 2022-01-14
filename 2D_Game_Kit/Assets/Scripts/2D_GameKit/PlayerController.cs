@@ -44,10 +44,7 @@ namespace TwoDGameKit
             // If there is Horizontal input (raw is -1.0 or 0.0 or 1.0)
 
             float direction = Input.GetAxisRaw("Horizontal");
-            if ( direction != 0.0f)
-            {
-                movement.Move(direction);
-            }
+            movement.Move(direction);
             // Jumping
             // try to jump if we are jumping
             bool willJump = Input.GetAxisRaw("Jump")!=0;
